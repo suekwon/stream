@@ -8,7 +8,7 @@ import time
 import json
 from datetime import datetime
 import matplotlib.pyplot as plt
-
+import matplotlib.font_manager as fm 
 
 # ↓ koreanize_matplotlib 제거 - distutils 문제 해결!
 
@@ -21,8 +21,17 @@ import matplotlib.pyplot as plt
 # KIPRIS_API_KEY = os.getenv("KIPRIS_API_KEY")
 # GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+@st.cache_data
+def fontRegistered():
+    font_dirs = [os.getcwd() + '/fonts']    
+    font_files = fm.findSystemFonts(fontpaths=font_dirs[0])    
+    for font_file in font_files:
+        fm.fontManager.addfont(font_file)
+    fm._load_fontmanager(try_read_cache=False)
+
 
 def setup_korean_font():
+    
     """Windows/Mac/Linux 환경에서 한글 폰트 자동 설정 - distutils 의존성 없음"""    
     try:
         if os.name == 'nt':  
@@ -30,14 +39,13 @@ def setup_korean_font():
             plt.rcParams['axes.unicode_minus'] = False
             return True
         else:            
-            plt.rcParams['font.family'] = 'Apple Gothic'
+            plt.rcParams['font.family'] = 'AppleGothic'
             plt.rcParams['axes.unicode_minus'] = False
             return True
             
     except Exception as e:
-        print(f"한글 폰트 설정 실패: {e}")
-        plt.rcParams['font.family'] = 'DejaVu Sans'
-        plt.rcParams['axes.unicode_minus'] = False
+        
+        fontRegistered()
         return False
 
 # if not KIPRIS_API_KEY or not GEMINI_API_KEY:
