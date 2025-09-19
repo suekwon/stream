@@ -4,12 +4,15 @@
 
 import streamlit as st
 import os
+# from dotenv import load_dotenv
 import time
 import json
 from datetime import datetime
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm 
-
+# 폰트 적용
+import os
+import matplotlib.font_manager as fm  # 폰트 관련 용도 as fm
+# import pandas as pd
 # ↓ koreanize_matplotlib 제거 - distutils 문제 해결!
 
 # 향상된 모듈 임포트
@@ -23,52 +26,26 @@ import matplotlib.font_manager as fm
 
 @st.cache_data
 def fontRegistered():
-    """Register custom fonts and return the main font name"""
-    try:
-        font_dirs = [os.path.join(os.getcwd(), 'customFonts')]
-        font_files = fm.findSystemFonts(fontpaths=font_dirs)
-        
-        if not font_files:
-            print("No font files found in the fonts directory")
-            return 'Malgun Gothic' if os.name == 'nt' else 'NanumGothic'
-            
-        for font_file in font_files:
-            try:
-                fm.fontManager.addfont(font_file)
-                print(f"Added font: {os.path.basename(font_file)}")
-            except Exception as e:
-                print(f"Error adding font {font_file}: {e}")
-        
-        # Reload font manager
-        fm._load_fontmanager(try_read_cache=False)
-        
-        # Return the first available font name for reference
-        if font_files:
-            return fm.get_font(font_files[0]).family_name
-        return 'Malgun Gothic' if os.name == 'nt' else 'NanumGothic'
-    except Exception as e:
-        print(f"Error in font registration: {e}")
-        return 'Malgun Gothic' if os.name == 'nt' else 'NotoSansKR-VariableFont_wght'
+    font_dirs = [os.getcwd() + '/customFonts']
+    font_files = fm.findSystemFonts(fontpaths=font_dirs)
 
+    for font_file in font_files:
+        fm.fontManager.addfont(font_file)
+    fm._load_fontmanager(try_read_cache=False)
+   
 
-# def setup_korean_font():
-    
-#     """Windows/Mac/Linux 환경에서 한글 폰트 자동 설정 - distutils 의존성 없음"""    
-#     try:
-#         if os.name == 'nt':  
-#             plt.rcParams['font.family'] = 'Malgun Gothic'
-#             plt.rcParams['axes.unicode_minus'] = False
-#             return True
-#         else:            
-#             plt.rcParams['font.family'] = 'AppleGothic'
-#             plt.rcParams['axes.unicode_minus'] = False
-#             return True
+def setup_korean_font():
+    """Windows/Mac/Linux 환경에서 한글 폰트 자동 설정 - distutils 의존성 없음"""
+    if os.name == 'nt':  # Windows
+        plt.rcParams['font.family'] = 'Malgun Gothic'
+        plt.rcParams['axes.unicode_minus'] = False
+        return True
+    else:  # Mac/Linux
+        fontRegistered()
+        plt.rcParams['font.family'] = 'Noto Sans KR'
+        plt.rcParams['axes.unicode_minus'] = False
+        return True
             
-#     except Exception as e:
-        
-#         fontRegistered()
-#         fontNames = [f.name for f in fm.fontManager.ttflist]
-#         return False
 
 # if not KIPRIS_API_KEY or not GEMINI_API_KEY:
 #     st.error("API 키가 설정되지 않았습니다.")
@@ -83,28 +60,9 @@ st.set_page_config(
 
 # 한글 폰트 설정 (앱 시작시 한번만)
 if 'font_setup' not in st.session_state:
-    # Register fonts and get the main font name
-    main_font = fontRegistered()
-    
-    # Set matplotlib to use the registered font
-    plt.rcParams['font.family'] = main_font
-    plt.rcParams['axes.unicode_minus'] = False
-    
-    # Set Streamlit's default font
-    st.markdown(
-        f"""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
-        html, body, [class*="css"]  {{
-            font-family: 'Noto Sans KR', sans-serif;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-    
+    korean_support = setup_korean_font()
     st.session_state.font_setup = True
-    st.session_state.korean_support = True
+    st.session_state.korean_support = korean_support
 
 # 고급 CSS 스타일링
 st.markdown("""
@@ -162,123 +120,86 @@ st.markdown('<div class="sub-title">distutils 완전 해결 + 직접 한글 폰�
 
 # 세션 상태 초기화
 if 'patents' not in st.session_state:
-    st.session_state.patents = [     ]
+    st.session_state.patents = [True]
 # if 'analyzer' not in st.session_state:
 #     st.session_state.analyzer = AdvancedPatentAnalyzer(GEMINI_API_KEY)
 
 # 사이드바 - 검색 설정
-with st.sidebar:
-    st.header("🔍 스마트 검색 설정")
+# with st.sidebar:
+#     st.header("🔍 스마트 검색 설정")
     
-    # 검색 모드
-    search_mode = st.radio(
-        "검색 모드:",
-        ["🔍 키워드 검색", "🏢 출원인 검색", "📄 특허번호 검색"],
-        help="AI가 키워드를 분석하여 대량의 관련 특허를 스마트하게 수집합니다"
-    )
+#     # 검색 모드
+#     search_mode = st.radio(
+#         "검색 모드:",
+#         ["🔍 키워드 검색", "🏢 출원인 검색", "📄 특허번호 검색"],
+#         help="AI가 키워드를 분석하여 대량의 관련 특허를 스마트하게 수집합니다"
+#     )
     
-    # 검색어 입력
-    if search_mode == "🔍 키워드 검색":
-        search_query = st.text_input(
-            "검색 키워드:",
-            placeholder="예: 마이크로로봇, 인공지능, 배터리",
-            help="AI가 수백건의 특허를 분석하여 관련성 높은 특허만 선별합니다"
-        )
-    elif search_mode == "🏢 출원인 검색":
-        search_query = st.text_input(
-            "출원인명 (부분일치):",
-            placeholder="예: 삼성, LG, 현대 (부분입력 가능)",
-            help="부분일치로 검색됩니다. '삼성' 입력시 '삼성전자', '삼성SDI' 등 모두 검색"
-        )
-    else:
-        search_query = st.text_input(
-            "특허/출원번호:",
-            placeholder="예: 1020230123456"
-        )
+#     # 검색어 입력
+#     if search_mode == "🔍 키워드 검색":
+#         search_query = st.text_input(
+#             "검색 키워드:",
+#             placeholder="예: 마이크로로봇, 인공지능, 배터리",
+#             help="AI가 수백건의 특허를 분석하여 관련성 높은 특허만 선별합니다"
+#         )
+#     elif search_mode == "🏢 출원인 검색":
+#         search_query = st.text_input(
+#             "출원인명 (부분일치):",
+#             placeholder="예: 삼성, LG, 현대 (부분입력 가능)",
+#             help="부분일치로 검색됩니다. '삼성' 입력시 '삼성전자', '삼성SDI' 등 모두 검색"
+#         )
+#     else:
+#         search_query = st.text_input(
+#             "특허/출원번호:",
+#             placeholder="예: 1020230123456"
+#         )
     
-    # 고급 설정
-    st.subheader("⚙️ 고급 설정")
-    max_results = st.slider("최대 검색 결과:", 50, 500, 200, 50, 
-                           help="AI가 관련성을 분석하여 상위 N건만 선별합니다")
+#     # 고급 설정
+#     st.subheader("⚙️ 고급 설정")
+#     max_results = st.slider("최대 검색 결과:", 50, 500, 200, 50, 
+#                            help="AI가 관련성을 분석하여 상위 N건만 선별합니다")
     
-    # AI 분석 모드
-    st.subheader("🧠 AI 분석 모드")
-    analysis_type = st.selectbox(
-        "분석 유형:",
-        [
-            "🏆 경쟁기관 분석",
-            "📈 기술 동향 분석", 
-            "🔮 향후 방향 예측",
-            "📊 종합 분석"
-        ]
-    )
+#     # AI 분석 모드
+#     st.subheader("🧠 AI 분석 모드")
+#     analysis_type = st.selectbox(
+#         "분석 유형:",
+#         [
+#             "🏆 경쟁기관 분석",
+#             "📈 기술 동향 분석", 
+#             "🔮 향후 방향 예측",
+#             "📊 종합 분석"
+#         ]
+#     )
     
-    # 실시간 통계 (사이드바)
-    if st.session_state.patents:
-        st.markdown("---")
-        st.subheader("📊 실시간 통계")
+#     # 실시간 통계 (사이드바)
+#     if st.session_state.patents:
+#         st.markdown("---")
+#         st.subheader("📊 실시간 통계")
         
-        total = len(st.session_state.patents)
-        st.metric("수집된 특허", f"{total:,}건")
+#         total = len(st.session_state.patents)
+#         st.metric("수집된 특허", f"{total:,}건")
         
-        # 최신 특허 비율
-        recent_patents = sum(1 for p in st.session_state.patents 
-                           if p.get('app_date', '')[:4] >= '2020')
-        recent_ratio = (recent_patents / total * 100) if total > 0 else 0
-        st.metric("최신 특허(2020년 이후)", f"{recent_ratio:.1f}%")
+#         # 최신 특허 비율
+#         recent_patents = sum(1 for p in st.session_state.patents 
+#                            if p.get('app_date', '')[:4] >= '2020')
+#         recent_ratio = (recent_patents / total * 100) if total > 0 else 0
+#         st.metric("최신 특허(2020년 이후)", f"{recent_ratio:.1f}%")
         
-        # 등록 특허 비율
-        registered = sum(1 for p in st.session_state.patents 
-                        if '등록' in p.get('reg_status', ''))
-        reg_ratio = (registered / total * 100) if total > 0 else 0
-        st.metric("등록 특허", f"{reg_ratio:.1f}%")
+#         # 등록 특허 비율
+#         registered = sum(1 for p in st.session_state.patents 
+#                         if '등록' in p.get('reg_status', ''))
+#         reg_ratio = (registered / total * 100) if total > 0 else 0
+#         st.metric("등록 특허", f"{reg_ratio:.1f}%")
 
-# =============================================================================
-# 메인 콘텐츠 - 위아래 레이아웃
-# =============================================================================
+# # =============================================================================
+# # 메인 콘텐츠 - 위아래 레이아웃
+# # =============================================================================
 
-# 첫 번째 섹션: 검색 인터페이스 및 결과
-st.markdown("## 🔍 스마트 특허 검색")
+# # 첫 번째 섹션: 검색 인터페이스 및 결과
+# st.markdown("## 🔍 스마트 특허 검색")
 
-
-st.markdown("### 📈 연도별 특허 출원 현황")
-    
-fontRegistered()
-fontNames = [f.name for f in fm.fontManager.ttflist]
-print("$"*100,fontNames)
-
-fontNm = 'NanumGothic' if os.name == 'nt' else 'NotoSansKR-Regular'
-plt.rc('font', family=fontNm)
-
-years = ['2024', '2023', '2023', '2022', '2021', '2020']
-counts = [10, 20, 30, 40, 50, 60]
-# matplotlib 차트 생성 (한글 폰트 자동 적용)
-fig, ax = plt.subplots(figsize=(12, 6))
-
-ax.bar(years, counts, color='#3b82f6', alpha=0.8)
-
-# 한글 지원 여부에 따라 제목 설정
-if st.session_state.get('korean_support', False):
-    ax.set_title('연도별 특허 출원 현황', fontsize=16, fontweight='bold')
-    ax.set_xlabel('연도', fontsize=12)
-    ax.set_ylabel('출원 건수', fontsize=12)
-else:
-    ax.set_title('Patent Applications by Year', fontsize=16, fontweight='bold')
-    ax.set_xlabel('Year', fontsize=12)
-    ax.set_ylabel('Applications', fontsize=12)
-
-ax.grid(True, alpha=0.3)
-plt.xticks(rotation=45)
-plt.tight_layout()
-st.pyplot(fig)
-plt.close(fig)
-
-
-
-
-
-# 검색 실행
-search_col1, search_col2 = st.columns([3, 1])
+# # 검색 실행
+# search_col1, search_col2 = st.columns([3, 1])
 
 # with search_col1:
 #     if st.button("🚀 AI 스마트 검색 실행", type="primary", use_container_width=True):
@@ -341,9 +262,9 @@ search_col1, search_col2 = st.columns([3, 1])
 #                 except Exception as e:
 #                     st.error(f"검색 중 오류: {e}")
 
-with search_col2:
-    if st.session_state.patents:
-        st.info(f"**현재 수집된 특허**\n{len(st.session_state.patents):,}건")
+# with search_col2:
+#     if st.session_state.patents:
+#         st.info(f"**현재 수집된 특허**\n{len(st.session_state.patents):,}건")
 
 # 검색 결과가 있을 때만 표시
 if st.session_state.patents:
@@ -361,46 +282,49 @@ if st.session_state.patents:
     # 핵심 메트릭 표시
     st.markdown("### 📊 검색 결과 요약")
     
-    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+    # col_m1, col_m2, col_m3, col_m4 = st.columns(4)
     
-    with col_m1:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric("총 특허 수", f"{len(patents):,}건")
-        st.markdown('</div>', unsafe_allow_html=True)
+    # with col_m1:
+    #     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    #     st.metric("총 특허 수", f"{len(patents):,}건")
+    #     st.markdown('</div>', unsafe_allow_html=True)
     
-    with col_m2:
-        unique_applicants = len(set(p.get('applicant', '') for p in patents))
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric("참여 기업", f"{unique_applicants}개")
-        st.markdown('</div>', unsafe_allow_html=True)
+    # with col_m2:
+    #     unique_applicants = len(set(p.get('applicant', '') for p in patents))
+    #     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    #     st.metric("참여 기업", f"{unique_applicants}개")
+    #     st.markdown('</div>', unsafe_allow_html=True)
     
-    with col_m3:
-        registered = len([p for p in patents if '등록' in p.get('reg_status', '')])
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric("등록 특허", f"{registered}건")
-        st.markdown('</div>', unsafe_allow_html=True)
+    # with col_m3:
+    #     registered = len([p for p in patents if '등록' in p.get('reg_status', '')])
+    #     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    #     st.metric("등록 특허", f"{registered}건")
+    #     st.markdown('</div>', unsafe_allow_html=True)
     
-    with col_m4:
-        if 'search_time' in st.session_state:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("검색 시간", f"{st.session_state.search_time:.1f}초")
-            st.markdown('</div>', unsafe_allow_html=True)
+    # with col_m4:
+    #     if 'search_time' in st.session_state:
+    #         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+    #         st.metric("검색 시간", f"{st.session_state.search_time:.1f}초")
+    #         st.markdown('</div>', unsafe_allow_html=True)
     
     # 연도별 출원 현황 차트 (직접 한글 폰트 설정 - distutils 없이!)
     st.markdown("### 📈 연도별 특허 출원 현황")
     
-    years_data = {}
-    for patent in st.session_state.patents:
-        app_date = patent.get('app_date', '')
-        if app_date and len(app_date) >= 4:
-            year = app_date[:4]
-            years_data[year] = years_data.get(year, 0) + 1
+    years = [2024, 2023, 2022, 2021, 2020, 2019]
+    counts = [0] * len(years)
+    years_data = True
+    
+    # for patent in patents:
+    #     app_date = patent.get('app_date', '')
+    #     if app_date and len(app_date) >= 4:
+    #         year = app_date[:4]
+    #         years_data[year] = years_data.get(year, 0) + 1
     
     if years_data:
         # matplotlib 차트 생성 (한글 폰트 자동 적용)
         fig, ax = plt.subplots(figsize=(12, 6))
-        years = sorted(years_data.keys())
-        counts = [years_data[year] for year in years]
+        # years = sorted(years_data.keys())
+        # counts = [years_data[year] for year in years]
         
         ax.bar(years, counts, color='#3b82f6', alpha=0.8)
         
