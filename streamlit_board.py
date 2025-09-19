@@ -23,12 +23,32 @@ import matplotlib.font_manager as fm
 
 @st.cache_data
 def fontRegistered():
-    font_dirs = [os.getcwd() + '/fonts']    
-    font_files = fm.findSystemFonts(fontpaths=font_dirs)    
-    for font_file in font_files:
-        print("&"*100, font_file)
-        fm.fontManager.addfont(font_file)
-    fm._load_fontmanager(try_read_cache=False)
+    """Register custom fonts and return the main font name"""
+    try:
+        font_dirs = [os.path.join(os.getcwd(), 'customFonts')]
+        font_files = fm.findSystemFonts(fontpaths=font_dirs)
+        
+        if not font_files:
+            print("No font files found in the fonts directory")
+            return 'Malgun Gothic' if os.name == 'nt' else 'NanumGothic'
+            
+        for font_file in font_files:
+            try:
+                fm.fontManager.addfont(font_file)
+                print(f"Added font: {os.path.basename(font_file)}")
+            except Exception as e:
+                print(f"Error adding font {font_file}: {e}")
+        
+        # Reload font manager
+        fm._load_fontmanager(try_read_cache=False)
+        
+        # Return the first available font name for reference
+        if font_files:
+            return fm.get_font(font_files[0]).family_name
+        return 'Malgun Gothic' if os.name == 'nt' else 'NanumGothic'
+    except Exception as e:
+        print(f"Error in font registration: {e}")
+        return 'Malgun Gothic' if os.name == 'nt' else 'NanumGothic'
 
 
 # def setup_korean_font():
@@ -62,10 +82,29 @@ st.set_page_config(
 )
 
 # 한글 폰트 설정 (앱 시작시 한번만)
-# if 'font_setup' not in st.session_state:
-#     korean_support = setup_korean_font()
-#     st.session_state.font_setup = True
-#     st.session_state.korean_support = korean_support
+if 'font_setup' not in st.session_state:
+    # Register fonts and get the main font name
+    main_font = fontRegistered()
+    
+    # Set matplotlib to use the registered font
+    plt.rcParams['font.family'] = main_font
+    plt.rcParams['axes.unicode_minus'] = False
+    
+    # Set Streamlit's default font
+    st.markdown(
+        f"""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
+        html, body, [class*="css"]  {{
+            font-family: 'Noto Sans KR', sans-serif;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.session_state.font_setup = True
+    st.session_state.korean_support = True
 
 # 고급 CSS 스타일링
 st.markdown("""
