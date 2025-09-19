@@ -21,32 +21,34 @@ import matplotlib.font_manager as fm
 # KIPRIS_API_KEY = os.getenv("KIPRIS_API_KEY")
 # GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-@st.cache_data
+# @st.cache_data
 def fontRegistered():
     font_dirs = [os.getcwd() + '/fonts']    
-    font_files = fm.findSystemFonts(fontpaths=font_dirs[0])    
+    font_files = fm.findSystemFonts(fontpaths=font_dirs)    
     for font_file in font_files:
+        print("&"*100, font_file)
         fm.fontManager.addfont(font_file)
     fm._load_fontmanager(try_read_cache=False)
 
 
-def setup_korean_font():
+# def setup_korean_font():
     
-    """Windows/Mac/Linux 환경에서 한글 폰트 자동 설정 - distutils 의존성 없음"""    
-    try:
-        if os.name == 'nt':  
-            plt.rcParams['font.family'] = 'Malgun Gothic'
-            plt.rcParams['axes.unicode_minus'] = False
-            return True
-        else:            
-            plt.rcParams['font.family'] = 'AppleGothic'
-            plt.rcParams['axes.unicode_minus'] = False
-            return True
+#     """Windows/Mac/Linux 환경에서 한글 폰트 자동 설정 - distutils 의존성 없음"""    
+#     try:
+#         if os.name == 'nt':  
+#             plt.rcParams['font.family'] = 'Malgun Gothic'
+#             plt.rcParams['axes.unicode_minus'] = False
+#             return True
+#         else:            
+#             plt.rcParams['font.family'] = 'AppleGothic'
+#             plt.rcParams['axes.unicode_minus'] = False
+#             return True
             
-    except Exception as e:
+#     except Exception as e:
         
-        fontRegistered()
-        return False
+#         fontRegistered()
+#         fontNames = [f.name for f in fm.fontManager.ttflist]
+#         return False
 
 # if not KIPRIS_API_KEY or not GEMINI_API_KEY:
 #     st.error("API 키가 설정되지 않았습니다.")
@@ -60,10 +62,10 @@ st.set_page_config(
 )
 
 # 한글 폰트 설정 (앱 시작시 한번만)
-if 'font_setup' not in st.session_state:
-    korean_support = setup_korean_font()
-    st.session_state.font_setup = True
-    st.session_state.korean_support = korean_support
+# if 'font_setup' not in st.session_state:
+#     korean_support = setup_korean_font()
+#     st.session_state.font_setup = True
+#     st.session_state.korean_support = korean_support
 
 # 고급 CSS 스타일링
 st.markdown("""
@@ -202,6 +204,12 @@ st.markdown("## 🔍 스마트 특허 검색")
 
 st.markdown("### 📈 연도별 특허 출원 현황")
     
+fontRegistered()
+fontNames = [f.name for f in fm.fontManager.ttflist]
+print("$"*100,fontNames)
+
+fontNm = 'NanumGothic-Regular'
+plt.rc('font', family=fontNm)
 
 years = ['2024', '2023', '2023', '2022', '2021', '2020']
 counts = [10, 20, 30, 40, 50, 60]
