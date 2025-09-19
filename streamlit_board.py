@@ -48,7 +48,7 @@ def fontRegistered():
         return 'Malgun Gothic' if os.name == 'nt' else 'NanumGothic'
     except Exception as e:
         print(f"Error in font registration: {e}")
-        return 'Malgun Gothic' if os.name == 'nt' else 'NanumGothic'
+        return 'Malgun Gothic' if os.name == 'nt' else 'NotoSansKR-VariableFont_wght'
 
 
 # def setup_korean_font():
@@ -247,7 +247,7 @@ fontRegistered()
 fontNames = [f.name for f in fm.fontManager.ttflist]
 print("$"*100,fontNames)
 
-fontNm = 'NanumGothic-Regular'
+fontNm = 'NanumGothic' if os.name == 'nt' else 'NotoSansKR-Regular'
 plt.rc('font', family=fontNm)
 
 years = ['2024', '2023', '2023', '2022', '2021', '2020']
