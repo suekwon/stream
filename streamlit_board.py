@@ -23,23 +23,16 @@ import matplotlib.pyplot as plt
 def setup_korean_font():
     """Windows/Mac/Linux 환경에서 한글 폰트 자동 설정 - distutils 의존성 없음"""
     try:
-        if os.name == 'nt':  # Windows
+        if os.name == 'nt':  
             plt.rcParams['font.family'] = 'Malgun Gothic'
             plt.rcParams['axes.unicode_minus'] = False
             return True
-        elif os.name == 'posix':  # Mac/Linux
-            try:
-                plt.rcParams['font.family'] = 'AppleGothic'
-                plt.rcParams['axes.unicode_minus'] = False
-                return True
-            except:
-                plt.rcParams['font.family'] = 'DejaVu Sans'
-                plt.rcParams['axes.unicode_minus'] = False
-                return False
         else:
+            
             plt.rcParams['font.family'] = 'DejaVu Sans'
             plt.rcParams['axes.unicode_minus'] = False
-            return False
+            return True
+            
     except Exception as e:
         print(f"한글 폰트 설정 실패: {e}")
         plt.rcParams['font.family'] = 'DejaVu Sans'
