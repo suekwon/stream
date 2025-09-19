@@ -21,7 +21,7 @@ import matplotlib.font_manager as fm
 # KIPRIS_API_KEY = os.getenv("KIPRIS_API_KEY")
 # GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# @st.cache_data
+@st.cache_data
 def fontRegistered():
     font_dirs = [os.getcwd() + '/fonts']    
     font_files = fm.findSystemFonts(fontpaths=font_dirs)    
