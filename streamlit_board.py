@@ -4,12 +4,11 @@
 
 import streamlit as st
 import os
-from dotenv import load_dotenv
 import time
 import json
 from datetime import datetime
 import matplotlib.pyplot as plt
-import pandas as pd
+
 # ↓ koreanize_matplotlib 제거 - distutils 문제 해결!
 
 # 향상된 모듈 임포트
