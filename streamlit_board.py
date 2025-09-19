@@ -9,6 +9,7 @@ import json
 from datetime import datetime
 import matplotlib.pyplot as plt
 
+
 # ↓ koreanize_matplotlib 제거 - distutils 문제 해결!
 
 # 향상된 모듈 임포트
@@ -20,16 +21,16 @@ import matplotlib.pyplot as plt
 # KIPRIS_API_KEY = os.getenv("KIPRIS_API_KEY")
 # GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+
 def setup_korean_font():
-    """Windows/Mac/Linux 환경에서 한글 폰트 자동 설정 - distutils 의존성 없음"""
+    """Windows/Mac/Linux 환경에서 한글 폰트 자동 설정 - distutils 의존성 없음"""    
     try:
         if os.name == 'nt':  
             plt.rcParams['font.family'] = 'Malgun Gothic'
             plt.rcParams['axes.unicode_minus'] = False
             return True
-        else:
-            
-            plt.rcParams['font.family'] = 'DejaVu Sans'
+        else:            
+            plt.rcParams['font.family'] = 'Apple Gothic'
             plt.rcParams['axes.unicode_minus'] = False
             return True
             
